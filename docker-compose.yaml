@@ -1,0 +1,32 @@
+version: "3.8"
+
+networks:
+  payments:
+    driver: bridge
+
+services:
+  bank_simulator:
+    container_name: bank_simulator
+    image: bbyars/mountebank:2.8.1
+    command: --configfile /imposters/bank_simulator.ejs --allowInjection
+    volumes:
+      - type: bind
+        source: ./imposters
+        target: /imposters
+    networks:
+      - payments
+      
+  api:
+    container_name: api
+    build:
+      context: .
+      dockerfile: Payments/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      BANK_ADDRESS: http://bank_simulator
+    networks:
+      - payments
+    depends_on:
+      - bank_simulator
+    
