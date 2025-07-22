@@ -36,7 +36,20 @@ public class PaymentsController : ControllerBase
     [ProducesResponseType<ApiError>((int)HttpStatusCode.NotFound)]
     public async Task<PaymentResponse> GetAsync(string id, CancellationToken cancellationToken)
     {
-        throw new InternalServerErrorException("Not implemented");
+        _logger.LogInformation("Received request to retieve payment '{paymentId}'", id);
+
+        var payment = await _repository.GetAsync(id, cancellationToken);
+        if (payment == null)
+        {
+            _logger.LogInformation("Payment '{paymentId}' could not be found, returning {exceptionType} error",
+                id, ExceptionTypes.PaymentNotFound);
+
+            throw new PaymentNotFoundException();
+        }
+        
+        _logger.LogInformation("Successfully found payment '{paymentId}', sending response", id);
+        
+        return MapPaymentToResponse(payment);
     }
 
     [HttpPost]
@@ -75,6 +88,11 @@ public class PaymentsController : ControllerBase
         
         _logger.LogInformation("Successfully saved payment record '{paymentId}'", payment.Id);
 
+        return MapPaymentToResponse(payment);
+    }
+
+    private static PaymentResponse MapPaymentToResponse(Payment payment)
+    {
         return new PaymentResponse
         {
             Id = payment.Id.ToString(),

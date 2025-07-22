@@ -35,6 +35,24 @@ public static class Helpers
 
         return new ApiResult<PaymentResponse> { Data = data };
     }
+    
+    public static async Task<ApiResult<PaymentResponse>> GetPaymentAsync(string id)
+    {
+        using var client = new HttpClient();
+        var response = await client.GetAsync(ApiBaseUrl + "/payments/"+id);
+        var json = await response.Content.ReadAsStringAsync();
+        
+        if (response.StatusCode != HttpStatusCode.OK)
+        {
+            var error = JsonSerializer.Deserialize<ApiError>(json, JsonSerializerOptions)!;
+
+            return new ApiResult<PaymentResponse> { Error = error! };
+        }
+
+        var data = JsonSerializer.Deserialize<PaymentResponse>(json, JsonSerializerOptions)!;
+
+        return new ApiResult<PaymentResponse> { Data = data };
+    }
 }
 
 public record ApiResult<T>
