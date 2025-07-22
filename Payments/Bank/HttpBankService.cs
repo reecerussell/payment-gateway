@@ -24,6 +24,8 @@ public class HttpBankService : IBankService
     
     public async Task<AuthorizePaymentResponse> AuthorizePaymentAsync(AuthorizePaymentRequest request, CancellationToken cancellationToken)
     {
+        _logger.LogInformation("Sending authorize payment request for card ending '{lastFourCardDigits}'", request.CardNumber[^4..]);
+        
         using var client = _clientFactory.CreateClient(Constants.HttpClientName);
         
         var payload = JsonSerializer.Serialize(request, _jsonSerializerOptions);
@@ -34,21 +36,30 @@ public class HttpBankService : IBankService
         switch (response.StatusCode)
         {
             case HttpStatusCode.OK:
+                _logger.LogInformation("Successfully received response for authorize payment request");
                 return (await JsonSerializer.DeserializeAsync<AuthorizePaymentResponse>(data, _jsonSerializerOptions, cancellationToken))!;
             case HttpStatusCode.BadRequest:
+                _logger.LogError("Received BadRequest response when sending authorize payment request");
                 var error = (await JsonSerializer.DeserializeAsync<ErrorResponse>(data, _jsonSerializerOptions, cancellationToken))!;
                 throw new BankException(error.ErrorMessage);
             case HttpStatusCode.ServiceUnavailable:
+                _logger.LogError("Received service unavailable response from Bank when sending authorize payment request");
                 throw new BankException("Bank is currently unavailable");
             default:
+                _logger.LogError("Received and unexpected status code '{statusCode}' when sending authorize payment request", response.StatusCode);
                 throw new BankException($"Received an unsupported status code {response.StatusCode}");
         }
     }
 
     public async Task<bool> HealthAsync(CancellationToken cancellationToken)
     {
+        _logger.LogInformation("Sending health check request to Bank");
+        
         using var client = _clientFactory.CreateClient(Constants.HttpClientName);
         var response = await client.GetAsync("/", cancellationToken);
+        
+        _logger.LogInformation("Received health check response with status code '{statusCode}'", response.StatusCode);
+        
         return response.IsSuccessStatusCode;
     }
 }

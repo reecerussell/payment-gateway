@@ -45,6 +45,9 @@ public class PaymentsController : ControllerBase
     public async Task<PaymentResponse> PostAsync([FromBody] PaymentRequest request, CancellationToken cancellationToken)
     {
         var payment = Payment.Create(request, _systemClock.UtcNow.UtcDateTime);
+        
+        _logger.LogInformation("Received request to process a payment for {amount} ({currency}) for card ending {lastFourCardDigits}",
+            payment.Amount, payment.Currency, payment.LastFourCardDigits);
 
         var authResponse = await _bank.AuthorizePaymentAsync(new AuthorizePaymentRequest
         {
@@ -57,8 +60,20 @@ public class PaymentsController : ControllerBase
 
         if (authResponse.Authorized)
         {
+            _logger.LogInformation("Received payment authorization with code '{authCode}****'", authResponse.AuthorizationCode[..4]);
+            
             payment.MarkAsAuthorized(authResponse.AuthorizationCode);
         }
+        else
+        {
+            _logger.LogInformation("Payment was not authorized, marking it as declined.");
+        }
+        
+        _logger.LogInformation("Saving record for payment '{paymentId}'", payment.Id);
+
+        await _repository.CreateAsync(payment, cancellationToken);
+        
+        _logger.LogInformation("Successfully saved payment record '{paymentId}'", payment.Id);
 
         return new PaymentResponse
         {

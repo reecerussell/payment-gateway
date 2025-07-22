@@ -6,5 +6,5 @@ public interface IPaymentRepository
 {
     Task<Payment?> GetAsync(string id, CancellationToken cancellationToken);
 
-    Task CreateAsync(string id, CancellationToken cancellationToken);
+    Task CreateAsync(Payment payment, CancellationToken cancellationToken);
 }

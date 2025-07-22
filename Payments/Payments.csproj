@@ -15,10 +15,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Dtos\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\Payments.Abstractions\Payments.Abstractions.csproj" />
     </ItemGroup>
 

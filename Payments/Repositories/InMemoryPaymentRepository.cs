@@ -1,16 +1,47 @@
+using System.Collections.Concurrent;
+using Payments.Abstractions.Exceptions;
 using Payments.Models;
 
 namespace Payments.Repositories;
 
 public class InMemoryPaymentRepository : IPaymentRepository
 {
+    private readonly ILogger<InMemoryPaymentRepository> _logger;
+    private readonly ConcurrentDictionary<string, Payment> _payments;
+
+    public InMemoryPaymentRepository(ILogger<InMemoryPaymentRepository> logger)
+    {
+        _logger = logger;
+        _payments = new ConcurrentDictionary<string, Payment>();
+    }
+    
     public Task<Payment?> GetAsync(string id, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        _logger.LogDebug("Attempting to retrieve payment '{paymentId}' from dictionary", id);
+
+        if (_payments.TryGetValue(id, out var payment))
+        {
+            _logger.LogDebug("Successfully retrieved payment from dictionary");
+        }
+        else
+        {
+            _logger.LogDebug("Payment '{paymentId}' could not be found in dictionary", id);
+        }
+        
+        return Task.FromResult(payment);
     }
 
-    public Task CreateAsync(string id, CancellationToken cancellationToken)
+    public Task CreateAsync(Payment payment, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        _logger.LogDebug("Attempting to add payment '{paymentId}' into dictionary", payment.Id);
+        
+        if (!_payments.TryAdd(payment.Id.ToString(), payment))
+        {
+            throw new InternalServerErrorException("Failed to add payment record into concurrent dictionary");
+        }
+        
+        _logger.LogDebug("Successfully added payment '{paymentId}' into dictionary", payment.Id);
+        
+        return Task.CompletedTask;
     }
 }
