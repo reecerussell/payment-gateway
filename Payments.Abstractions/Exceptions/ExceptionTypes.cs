@@ -1,4 +1,4 @@
-namespace Payments.Exceptions;
+namespace Payments.Abstractions.Exceptions;
 
 public class ExceptionTypes
 {

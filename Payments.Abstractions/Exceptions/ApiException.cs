@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace Payments.Exceptions;
+namespace Payments.Abstractions.Exceptions;
 
 public abstract class ApiException : Exception
 {

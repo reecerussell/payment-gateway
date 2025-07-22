@@ -1,6 +1,4 @@
-using Payments.Enums;
-
-namespace Payments.Dtos;
+namespace Payments.Abstractions;
 
 public record PaymentResponse
 {

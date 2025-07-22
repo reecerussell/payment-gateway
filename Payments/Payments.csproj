@@ -14,4 +14,12 @@
         <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="9.0.3" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Dtos\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Payments.Abstractions\Payments.Abstractions.csproj" />
+    </ItemGroup>
+
 </Project>

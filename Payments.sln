@@ -2,6 +2,10 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Payments", "Payments\Payments.csproj", "{80CA30A0-9614-4D17-8434-5EAA82D4A8C9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Payments.IntegrationTests", "Payments.IntegrationTests\Payments.IntegrationTests.csproj", "{236B1846-F69A-4FE6-82C4-83BD951CB592}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Payments.Abstractions", "Payments.Abstractions\Payments.Abstractions.csproj", "{CF42F22D-C996-45FD-9B9C-0446C052CA1A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +16,13 @@ Global
 		{80CA30A0-9614-4D17-8434-5EAA82D4A8C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{80CA30A0-9614-4D17-8434-5EAA82D4A8C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{80CA30A0-9614-4D17-8434-5EAA82D4A8C9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{236B1846-F69A-4FE6-82C4-83BD951CB592}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{236B1846-F69A-4FE6-82C4-83BD951CB592}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{236B1846-F69A-4FE6-82C4-83BD951CB592}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{236B1846-F69A-4FE6-82C4-83BD951CB592}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF42F22D-C996-45FD-9B9C-0446C052CA1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF42F22D-C996-45FD-9B9C-0446C052CA1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF42F22D-C996-45FD-9B9C-0446C052CA1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF42F22D-C996-45FD-9B9C-0446C052CA1A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

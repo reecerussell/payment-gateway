@@ -1,8 +1,10 @@
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Internal;
+using Payments.Abstractions;
+using Payments.Abstractions.Exceptions;
 using Payments.Bank;
-using Payments.Dtos;
-using Payments.Exceptions;
+using Payments.Models;
 using Payments.Repositories;
 
 namespace Payments.Controllers;
@@ -13,12 +15,18 @@ public class PaymentsController : ControllerBase
 {
     private readonly IPaymentRepository _repository;
     private readonly IBankService _bank;
+    private readonly ISystemClock _systemClock;
     private readonly ILogger<PaymentsController> _logger;
 
-    public PaymentsController(IPaymentRepository repository, IBankService bank, ILogger<PaymentsController> logger)
+    public PaymentsController(
+        IPaymentRepository repository,
+        IBankService bank,
+        ISystemClock systemClock,
+        ILogger<PaymentsController> logger)
     {
         _repository = repository;
         _bank = bank;
+        _systemClock = systemClock;
         _logger = logger;
     }
     
@@ -36,6 +44,31 @@ public class PaymentsController : ControllerBase
     [ProducesResponseType<ApiError>((int)HttpStatusCode.BadRequest)]
     public async Task<PaymentResponse> PostAsync([FromBody] PaymentRequest request, CancellationToken cancellationToken)
     {
-        throw new InternalServerErrorException("Not implemented");
+        var payment = Payment.Create(request, _systemClock.UtcNow.UtcDateTime);
+
+        var authResponse = await _bank.AuthorizePaymentAsync(new AuthorizePaymentRequest
+        {
+            CardNumber = request.CardNumber,
+            ExpiryDate = $"{request.ExpiryMonth}/{request.ExpiryYear}",
+            Amount = request.Amount,
+            Currency = request.Currency,
+            Cvv = request.Cvv
+        }, cancellationToken);
+
+        if (authResponse.Authorized)
+        {
+            payment.MarkAsAuthorized(authResponse.AuthorizationCode);
+        }
+
+        return new PaymentResponse
+        {
+            Id = payment.Id.ToString(),
+            Amount = payment.Amount,
+            Currency = payment.Currency,
+            ExpiryMonth = payment.ExpiryMonth,
+            ExpiryYear = payment.ExpiryYear,
+            LastFourCardDigits = payment.LastFourCardDigits,
+            Status = payment.Status
+        };
     }
 }

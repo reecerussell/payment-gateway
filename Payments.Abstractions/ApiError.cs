@@ -1,4 +1,4 @@
-namespace Payments.Dtos;
+namespace Payments.Abstractions;
 
 public record ApiError
 {
