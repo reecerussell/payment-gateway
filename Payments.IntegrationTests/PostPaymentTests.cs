@@ -76,4 +76,24 @@ public class PostPaymentTests
         Assert.That(result.Error, Is.Not.Null);
         Assert.That(result.Error.Type, Is.EqualTo(ExceptionTypes.InternalServerError));
     }
+    
+    [Test]
+    public async Task GivenInvalidInput_ReturnsError()
+    {
+        var request = new PaymentRequest
+        {
+            CardNumber = "not a card number",
+            ExpiryMonth = DateTime.UtcNow.AddMonths(-2).Month,
+            ExpiryYear = DateTime.UtcNow.AddMonths(-2).Year,
+            Cvv = "4994444",
+            Amount = -2340,
+            Currency = "currency"
+        };
+
+        var result = await Helpers.PostPaymentAsync(request);
+
+        Assert.That(result.Data, Is.Null);
+        Assert.That(result.Error, Is.Not.Null);
+        Assert.That(result.Error.Type, Is.EqualTo(ExceptionTypes.Validation));
+    }
 }
