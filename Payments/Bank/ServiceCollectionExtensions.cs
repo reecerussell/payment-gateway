@@ -1,3 +1,6 @@
+using Microsoft.Extensions.Http.Resilience;
+using Polly;
+
 namespace Payments.Bank;
 
 public static class ServiceCollectionExtensions
@@ -18,6 +21,13 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient(Constants.HttpClientName, options =>
         {
             options.BaseAddress = addressUri;
+            options.Timeout = TimeSpan.FromSeconds(30);
+        }).AddStandardResilienceHandler(options =>
+        {
+            options.Retry = new HttpRetryStrategyOptions
+            {
+                MaxRetryAttempts = 2, // Total 3 requests
+            };
         });
 
         return services.AddSingleton<IBankService, HttpBankService>();
