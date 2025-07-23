@@ -39,6 +39,7 @@ public static class Program
     
     private static void ConfigureReDoc(ReDocOptions options)
     {
+        options.SpecUrl = "/docs/v1/openapi.json";
         options.RoutePrefix = "docs";
         options.DocumentTitle = "Payments Gateway";
     }
@@ -84,8 +85,8 @@ public static class Program
     {
         var app = builder.Build();
         
-        app.UseSwagger(o => o.RouteTemplate = "docs/{documentName}/openapi.json");
         app.UseReDoc(ConfigureReDoc);
+        app.UseSwagger(o => o.RouteTemplate = "docs/{documentName}/openapi.json");
         app.UseMiddleware<ErrorMiddleware>();
         app.MapHealthChecks("/health");
         app.MapControllers();
