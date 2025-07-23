@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using Payments.Abstractions.Exceptions;
 using Payments.Models;
 
@@ -17,6 +18,9 @@ public class InMemoryPaymentRepository : IPaymentRepository
     
     public Task<Payment?> GetAsync(string id, CancellationToken cancellationToken)
     {
+        using var activity = Telemetry.ActivitySource.StartActivity();
+        activity?.SetTag("payment_id", id);
+        
         _logger.LogDebug("Attempting to retrieve payment '{paymentId}' from dictionary", id);
 
         if (_payments.TryGetValue(id, out var payment))
@@ -33,10 +37,15 @@ public class InMemoryPaymentRepository : IPaymentRepository
 
     public Task CreateAsync(Payment payment, CancellationToken cancellationToken)
     {
+        using var activity = Telemetry.ActivitySource.StartActivity();
+        activity?.SetTag("payment_id", payment.Id);
+        
         _logger.LogDebug("Attempting to add payment '{paymentId}' into dictionary", payment.Id);
         
         if (!_payments.TryAdd(payment.Id.ToString(), payment))
         {
+            activity?.SetStatus(ActivityStatusCode.Error);
+            
             throw new InternalServerErrorException("Failed to add payment record into concurrent dictionary");
         }
         

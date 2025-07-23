@@ -5,10 +5,21 @@ networks:
     driver: bridge
 
 services:
+  jaeger:
+    image: jaegertracing/all-in-one:1.55
+    container_name: jaeger
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+    networks:
+      - payments
+  
   bank_simulator:
     container_name: bank_simulator
     image: bbyars/mountebank:2.8.1
     command: --configfile /imposters/bank_simulator.ejs --allowInjection
+    ports:
+      - "9080:8080"
     volumes:
       - type: bind
         source: ./imposters
@@ -24,9 +35,11 @@ services:
     ports:
       - "8080:8080"
     environment:
-      BANK_ADDRESS: http://bank_simulator
+      BANK_ADDRESS: http://bank_simulator:8080
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
     networks:
       - payments
     depends_on:
+      - jaeger
       - bank_simulator
-    

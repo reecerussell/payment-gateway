@@ -27,6 +27,7 @@ public static class Program
         // Boilerplate services
         builder.Services.AddLogging(o =>
             o.ClearProviders().AddSerilog(dispose: false));
+        builder.Services.AddTelemetry(builder.Configuration);
         builder.Services.AddControllers()
             .AddJsonOptions(o =>
             {

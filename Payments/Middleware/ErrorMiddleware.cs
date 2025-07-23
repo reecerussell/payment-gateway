@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -28,6 +29,8 @@ public class ErrorMiddleware : IMiddleware
             if (e is InternalServerErrorException)
             {
                 _logger.LogError(e, "An internal server error occured");
+
+                Activity.Current?.SetStatus(ActivityStatusCode.Error, e.Message);
             }
             
             await WriteErrorAsync(context, e);
@@ -35,6 +38,8 @@ public class ErrorMiddleware : IMiddleware
         catch (Exception e)
         {
             _logger.LogError(e, "An unhandled exception occured");
+            
+            Activity.Current?.SetStatus(ActivityStatusCode.Error, e.Message);
 
             await WriteErrorAsync(context, new InternalServerErrorException());
         }
