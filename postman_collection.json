@@ -1,0 +1,191 @@
+{
+	"info": {
+		"_postman_id": "0ee7c1b8-ff4b-44b6-bcfb-c32e48aa219c",
+		"name": "Payments",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "16140618",
+		"_collection_link": "https://lively-space-758174.postman.co/workspace/My-Workspace~b67d1683-a0e4-4dff-8de0-6dbb420bcc4c/collection/16140618-0ee7c1b8-ff4b-44b6-bcfb-c32e48aa219c?action=share&source=collection_link&creator=16140618"
+	},
+	"item": [
+		{
+			"name": "Process Payment",
+			"item": [
+				{
+					"name": "Authorized",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"cardNumber\": \"32402347023333\",\n    \"expiryMonth\": 3,\n    \"expiryYear\": 2027,\n    \"cvv\": \"123\",\n    \"amount\": 999,\n    \"currency\": \"GBP\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/payments",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"payments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Declined",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"cardNumber\": \"32402347023334\",\n    \"expiryMonth\": 3,\n    \"expiryYear\": 2027,\n    \"cvv\": \"123\",\n    \"amount\": 999,\n    \"currency\": \"GBP\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/payments",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"payments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Bank Unavailable",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"cardNumber\": \"32402347023330\",\n    \"expiryMonth\": 3,\n    \"expiryYear\": 2027,\n    \"cvv\": \"123\",\n    \"amount\": 999,\n    \"currency\": \"GBP\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/payments",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"payments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Invalid Data",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"cardNumber\": \"not a card number\",\n    \"expiryMonth\": 3,\n    \"expiryYear\": 2027,\n    \"cvv\": \"123\",\n    \"amount\": 999,\n    \"currency\": \"GBP\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/payments",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"payments"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Get Payment",
+			"item": [
+				{
+					"name": "Payment Found",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/payments/c3e11c2f-ad1e-4e6e-87f8-97b36150fd7b",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"payments",
+								"c3e11c2f-ad1e-4e6e-87f8-97b36150fd7b"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Payment Not Found",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/payments/not-found",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"payments",
+								"not-found"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
