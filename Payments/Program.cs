@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Internal;
+using OpenTelemetry.Trace;
 using Payments.Bank;
 using Payments.HealthChecks;
 using Payments.Middleware;
@@ -14,16 +15,46 @@ namespace Payments;
 
 public static class Program
 {
-    public static void Main(string[] args)
+    private static readonly ManualResetEvent Shutdown = new (false);
+    private static readonly ManualResetEvent Done = new(false);
+    
+    public static async Task Main(string[] args)
+    {
+        ConfigureLogger();
+        ConfigureShutdown();
+        
+        // Configure and start the HTTP server
+        var app = WebApplication.CreateBuilder(args)
+            .ConfigureServices()
+            .ConfigureApp();
+        await app.StartAsync();
+
+        await WaitForShutdownAsync(app);
+    }
+    
+    private static void ConfigureSwagger(SwaggerGenOptions options)
+    {
+        options.SupportNonNullableReferenceTypes();
+    }
+    
+    private static void ConfigureReDoc(ReDocOptions options)
+    {
+        options.RoutePrefix = "docs";
+        options.DocumentTitle = "Payments Gateway";
+    }
+
+    private static void ConfigureLogger()
     {
         Log.Logger = new LoggerConfiguration()
             .Enrich.FromLogContext()
             .WriteTo.Console()
             .CreateLogger();
-        
-        var builder = WebApplication.CreateBuilder(args);
-        builder.Configuration.AddEnvironmentVariables();
+    }
 
+    private static WebApplicationBuilder ConfigureServices(this WebApplicationBuilder builder)
+    {
+        builder.Configuration.AddEnvironmentVariables();
+        
         // Boilerplate services
         builder.Services.AddLogging(o =>
             o.ClearProviders().AddSerilog(dispose: false));
@@ -46,6 +77,11 @@ public static class Program
             .AddSingleton<ErrorMiddleware>()
             .AddSingleton<IPaymentRepository, InMemoryPaymentRepository>();
 
+        return builder;
+    }
+
+    private static WebApplication ConfigureApp(this WebApplicationBuilder builder)
+    {
         var app = builder.Build();
         
         app.UseSwagger(o => o.RouteTemplate = "docs/{documentName}/openapi.json");
@@ -54,17 +90,59 @@ public static class Program
         app.MapHealthChecks("/health");
         app.MapControllers();
 
-        app.Run();
+        return app;
     }
-    
-    private static void ConfigureSwagger(SwaggerGenOptions options)
+
+    /// <summary>
+    /// Used to configure shutdown events, such as unhandled exceptions or CTRL+C.
+    /// </summary>
+    private static void ConfigureShutdown()
     {
-        options.SupportNonNullableReferenceTypes();
+        Console.CancelKeyPress += (_, _) =>
+        {
+            Log.Information("Shutdown signal received!");
+            Shutdown.Set();
+            Done.WaitOne();
+        };
+
+        AppDomain.CurrentDomain.UnhandledException += (_, evt) =>
+        {
+            if (evt.ExceptionObject is Exception e)
+            {
+                Log.Error(e, "An unhandled exception occurred");
+            }
+            else
+            {
+                Log.Error("An unhandled error occurred but did not contain an exception");
+            }
+
+            Shutdown.Set();
+            Done.WaitOne();
+        };
     }
-    
-    private static void ConfigureReDoc(ReDocOptions options)
+
+    /// <summary>
+    /// Used to wait for shutdown events and handle clean up.
+    /// </summary>
+    private static async Task WaitForShutdownAsync(WebApplication app)
     {
-        options.RoutePrefix = "docs";
-        options.DocumentTitle = "Payments Gateway";
+        // Wait for shutdown
+        Shutdown.WaitOne();
+        
+        Log.Information("Shutting down Payments Gateway...");
+
+        using var ctx = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        await app.WaitForShutdownAsync(ctx.Token);
+        
+        Log.Debug("Flushing OpenTelemetry metrics...");
+        
+        TracerProvider.Default.ForceFlush(2000);
+        TracerProvider.Default.Shutdown(1000);
+        
+        Log.Information("Shutdown complete");
+        
+        await Log.CloseAndFlushAsync();
+
+        Done.Set();
     }
 }
