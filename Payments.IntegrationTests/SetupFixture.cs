@@ -73,7 +73,6 @@ public class SetupFixture
             .WithCleanUp(true)
             .WithPortBinding(8080, 8080)
             .WithWaitStrategy(Wait.ForUnixContainer().UntilHttpRequestIsSucceeded(r => r.ForPath("/health").ForPort(8080)))
-            .WithOutputConsumer(new OutputConsumer("API"))
             .Build();
 
         await _apiContainer.StartAsync();
