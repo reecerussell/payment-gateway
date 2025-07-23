@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Http.Resilience;
-using Polly;
 
 namespace Payments.Bank;
 
