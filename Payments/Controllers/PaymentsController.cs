@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Internal;
@@ -81,12 +82,23 @@ public class PaymentsController : ControllerBase
         {
             _logger.LogInformation("Payment was not authorized, marking it as declined.");
         }
-        
-        _logger.LogInformation("Saving record for payment '{paymentId}'", payment.Id);
 
-        await _repository.CreateAsync(payment, cancellationToken);
-        
-        _logger.LogInformation("Successfully saved payment record '{paymentId}'", payment.Id);
+        try
+        {
+            _logger.LogInformation("Saving record for payment '{paymentId}'", payment.Id);
+
+            await _repository.CreateAsync(payment, cancellationToken);
+
+            _logger.LogInformation("Successfully saved payment record '{paymentId}'", payment.Id);
+        }
+        catch (Exception)
+        {
+            // If we have processed the payment but failed to save the payment record, we raise
+            // the event below which we can look out for in an observability and alerting solution.
+            Activity.Current?.AddEvent(new ActivityEvent("OrphanedPayment"));
+            
+            throw;
+        }
 
         return MapPaymentToResponse(payment);
     }

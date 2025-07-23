@@ -31,6 +31,7 @@ public class ErrorMiddleware : IMiddleware
                 _logger.LogError(e, "An internal server error occured");
 
                 Activity.Current?.SetStatus(ActivityStatusCode.Error, e.Message);
+                Activity.Current?.AddException(e);
             }
             
             await WriteErrorAsync(context, e);
@@ -40,6 +41,7 @@ public class ErrorMiddleware : IMiddleware
             _logger.LogError(e, "An unhandled exception occured");
             
             Activity.Current?.SetStatus(ActivityStatusCode.Error, e.Message);
+            Activity.Current?.AddException(e);
 
             await WriteErrorAsync(context, new InternalServerErrorException());
         }
@@ -55,6 +57,7 @@ public class ErrorMiddleware : IMiddleware
         };
 
         context.Response.StatusCode = (int)e.StatusCode;
+        context.Response.ContentType = "application/json";
         await JsonSerializer.SerializeAsync(context.Response.Body, error, _jsonOptions.Value.JsonSerializerOptions);
     }
 }
